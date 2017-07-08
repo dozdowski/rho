@@ -11,6 +11,7 @@ import subprocess as sp
 
 PRINT_LOG = ""
 
+
 class RhoCmd(object):
     """RhoCmd and its sub-classes are wrapper classes around
     the cli cmds we run on the host machines. The

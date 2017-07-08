@@ -23,8 +23,6 @@ import xml
 import ast
 import re
 from ansible.module_utils.basic import AnsibleModule
-
-print "PYTHONPATH:", sys.path
 from ansible.module_utils import rho_cmd
 
 if sys.version_info > (3,):
@@ -38,7 +36,6 @@ else:
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
-
 
 
 class DateRhoCmd(rho_cmd.RhoCmd):
@@ -1172,9 +1169,9 @@ class RunCommands(object):
         # Goes through all the default commands
         # and executes them on the box's shell
         info_dict = {}
-        for rho_cmd in self.facts_requested:
-            rcmd = rho_cmd()
-            rcmd.run_cmd(self.facts_requested[rho_cmd])
+        for command in self.facts_requested:
+            rcmd = command()
+            rcmd.run_cmd(self.facts_requested[command])
             info_dict.update(rcmd.data)
 
         if 'all' not in self.facts_requested.values():
