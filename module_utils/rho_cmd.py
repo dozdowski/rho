@@ -7,6 +7,8 @@
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
+"""RhoCmd: a base class with common functionality for our Ansible modules."""
+
 import subprocess as sp
 
 PRINT_LOG = ""
