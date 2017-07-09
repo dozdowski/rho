@@ -15,7 +15,6 @@
 
 import csv
 import os
-import json
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -92,7 +91,7 @@ class Results(object):
         normalized_path = os.path.normpath(self.file_path)
         with open(normalized_path, 'w') as write_file:
             # Construct the CSV writer
-            writer = csv.DictWriter(write_file, sorted(keys), 
+            writer = csv.DictWriter(write_file, sorted(keys),
                                     extrasaction='ignore', delimiter=',')
 
             # Write a CSV header if necessary
@@ -105,6 +104,7 @@ class Results(object):
                 writer.writerow(data)
 
         # Save the data for our results
+        # pylint: disable=attribute-defined-outside-init
         self.filtered_vars = filtered_vars
         self.keys = list(keys)
 
@@ -125,8 +125,9 @@ def main():
 
     results = Results(module=module)
     results.write_to_csv()
-    module.exit_json(changed=False, meta={'filtered_vars': results.filtered_vars,
-                                          'keys': results.keys})
+    module.exit_json(changed=False,
+                     meta={'filtered_vars': results.filtered_vars,
+                           'keys': results.keys})
 
 
 if __name__ == '__main__':
