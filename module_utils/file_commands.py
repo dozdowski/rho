@@ -1,10 +1,12 @@
 """Three commands for looking at /etc files on the remote machine."""
 
 import sys
+# for expat exceptions...
+import xml
 
 import gettext
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
 
 # for parsing systemid
 if sys.version_info > (3,):
@@ -16,6 +18,7 @@ T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
 
+# pylint: disable=too-few-public-methods
 class _GetFileRhoCmd(rho_cmd.RhoCmd):
     """This is a private superclass that does not
     directly wrap around particular command
@@ -47,6 +50,7 @@ class _GetFileRhoCmd(rho_cmd.RhoCmd):
             strip().replace('\n', '').replace('\r', '') + '"'
 
 
+# pylint: disable=too-few-public-methods
 class EtcIssueRhoCmd(_GetFileRhoCmd):
     """This class wraps around the command string
     to obtain information from the file '/etc/issue'.
@@ -80,6 +84,7 @@ class EtcIssueRhoCmd(_GetFileRhoCmd):
                                            + '"'
 
 
+# pylint: disable=too-few-public-methods
 class InstnumRhoCmd(_GetFileRhoCmd):
     """This class wraps around the command string
     to obtain info from the file '/etc/sysconfig/rhn/install-num'
@@ -105,6 +110,7 @@ class InstnumRhoCmd(_GetFileRhoCmd):
             self.cmd_results[self.cmd_names.keys()[0]][0])
 
 
+# pylint: disable=too-few-public-methods
 class SystemIdRhoCmd(_GetFileRhoCmd):
     """This class wraps around the command string to
     obtain infro from the file '/etc/sysconfig/rhn/systemid'.
@@ -116,8 +122,8 @@ class SystemIdRhoCmd(_GetFileRhoCmd):
         self.filename = "/etc/sysconfig/rhn/systemid"
         cmd_string = self.cmd_string_template % (self.filename, self.filename)
         self.cmd_strings['get_file'] = cmd_string
-        # FIXME: there are more fields here, # not sure it's worth including
-        # FIXME: them as options
+        # There are more fields here, not sure it's worth including
+        # them as options
         self.cmd_names["get_file"].append('systemid.system_id')
         self.cmd_names["get_file"].append('systemid.username')
         self.fields = {'systemid.system_id': _('Red Hat Network system id'),

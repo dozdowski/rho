@@ -11,12 +11,13 @@
 
 import gettext
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
 
+# pylint: disable=too-few-public-methods
 class UnameRhoCmd(rho_cmd.RhoCmd):
     """UnameRhoCmd is the wrapper for all cli commands
     to do with 'uname -<parameter>'. There are six

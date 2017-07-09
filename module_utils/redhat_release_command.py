@@ -11,12 +11,13 @@
 
 import gettext
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
 
+# pylint: disable=too-few-public-methods
 class RedhatReleaseRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around a single command string
     whose result is parsed to populate 4 possible
@@ -55,6 +56,7 @@ class RedhatReleaseRhoCmd(rho_cmd.RhoCmd):
         # new line seperated string, one result only
         if self.cmd_results["get_release_info"][1]:
             # and/or, something not dumb
+            # pylint: disable=attribute-defined-outside-init
             self.data = {'redhat-release.name': 'error',
                          'redhat-release.version': 'error',
                          'redhat-release.release': 'error'}

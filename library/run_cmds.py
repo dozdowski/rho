@@ -13,16 +13,12 @@
 
 """Commands to run on machines"""
 
-import sys
 import json
-import subprocess as sp
 
-# for expat exceptions...
-import xml
 import ast
-import re
+# pylint:disable=no-name-in-module
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils import rho_cmd  # pylint:disable=no-name-in-module
+from ansible.module_utils import rho_cmd
 from ansible.module_utils import date_command
 from ansible.module_utils import uname_command
 from ansible.module_utils import subman_facts_command
@@ -34,9 +30,6 @@ from ansible.module_utils import file_commands
 from ansible.module_utils import dmi_command
 from ansible.module_utils import virt_what_command
 from ansible.module_utils import virt_command
-
-if sys.version_info > (3,):
-    long = int  # pylint: disable=invalid-name,redefined-builtin
 
 # List of default commands
 DEFAULT_CMDS = [uname_command.UnameRhoCmd,
@@ -58,7 +51,8 @@ DEFAULT_CMDS = [uname_command.UnameRhoCmd,
 # to the field requested using an '_').
 
 DEFAULT_CMD_DICT = {"Username": uname_command.UnameRhoCmd,
-                    "RedhatRelease": redhat_release_command.RedhatReleaseRhoCmd,
+                    "RedhatRelease":
+                    redhat_release_command.RedhatReleaseRhoCmd,
                     "Instnum": file_commands.InstnumRhoCmd,
                     "SysId": file_commands.SystemIdRhoCmd,
                     "Cpu": cpu_command.CpuRhoCmd,
@@ -66,8 +60,8 @@ DEFAULT_CMD_DICT = {"Username": uname_command.UnameRhoCmd,
                     "EtcIssue": file_commands.EtcIssueRhoCmd,
                     "Dmi": dmi_command.DmiRhoCmd,
                     "Virt": virt_command.VirtRhoCmd,
-                    "RedhatPackages": 
-                      redhat_packages_command.RedhatPackagesRhoCmd,
+                    "RedhatPackages":
+                    redhat_packages_command.RedhatPackagesRhoCmd,
                     "VirtWhat": virt_what_command.VirtWhatRhoCmd,
                     "Date": date_command.DateRhoCmd,
                     "SubmanFacts": subman_facts_command.SubmanFactsRhoCmd}

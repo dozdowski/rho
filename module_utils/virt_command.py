@@ -11,12 +11,14 @@
 
 import gettext
 
+# pylint: disable=no-name-in-module
 from ansible.module_utils import cpu_command
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
 
+# pylint: disable=too-few-public-methods
 class VirtRhoCmd(cpu_command.CpuRhoCmd):
     """This class wraps around the command strings
     to get information for fields like sys_manu,

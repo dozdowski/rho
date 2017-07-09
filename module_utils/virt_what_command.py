@@ -11,12 +11,13 @@
 
 import gettext
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
 
+# pylint: disable=too-few-public-methods
 class VirtWhatRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the command string
     that is run to obtain information about

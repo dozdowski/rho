@@ -11,12 +11,13 @@
 
 import gettext
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
 
 
+# pylint: disable=too-few-public-methods
 class DateRhoCmd(rho_cmd.RhoCmd):
     """DateRhoCmd has primarily one cmd_string i.e.'data'
     which is run to grab the system date.

@@ -7,9 +7,11 @@
 # along with this software; if not, see
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
+"""Read various /etc/*-release files."""
+
 import subprocess as sp
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
 
 
 class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
@@ -36,7 +38,7 @@ class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
          os=$DISTRIB_ID
          ver=$DISTRIB_RELEASE
         elif [ -f /etc/debian_version ]; then
-            os=Debian  # XXX or Ubuntu??
+            os=Debian  # Or Ubuntu??
             ver=$( cat /etc/debian_version )
         elif [ -f /etc/redhat-release ]; then
             rel=$( cat /etc/redhat-release )
@@ -75,7 +77,7 @@ class EtcReleaseRhoCmd(rho_cmd.RhoCmd):
         echo $rel"""
         self.cmd_strings["get_release_info"] = cmd_string
 
-    def run_cmd(self, facts):
+    def run_cmd(self, facts):  # pylint: disable=unused-argument
         """The run_cmd method is overwritten for this
         class because of the additional requirement
         to parse the results according to the boolean

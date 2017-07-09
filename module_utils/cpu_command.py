@@ -10,9 +10,10 @@
 """Get /proc/cpuinfo information from the remote machine."""
 
 import gettext
+import re
 import subprocess as sp
 
-from ansible.module_utils import rho_cmd
+from ansible.module_utils import rho_cmd  # pylint:disable=no-name-in-module
 
 T = gettext.translation('rho', 'locale', fallback=True)
 _ = T.ugettext
@@ -49,6 +50,7 @@ class CpuRhoCmd(rho_cmd.RhoCmd):
                        'cpu.model_ver': _("cpu model version")}
 
     def parse_data(self):
+        # pylint: disable=missing-docstring, attribute-defined-outside-init
         self.data = self.parse_data_cpu(self.cmd_results)
 
     # pylint: disable=no-self-use
@@ -94,7 +96,7 @@ class CpuRhoCmd(rho_cmd.RhoCmd):
 
         # we don't need everything, just parse out the interesting bits
 
-        # FIXME: this only supports i386/x86_64. We could add support for more
+        # This only supports i386/x86_64. We could add support for more
         # but it's a lot of ugly code (see read_cpuinfo() in smolt.py
         # from smolt[I know it's ugly, I wrote it...]) That code also
         # needs the value of uname() available to it, which we don't

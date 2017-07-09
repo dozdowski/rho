@@ -9,8 +9,15 @@
 
 """Look for Red Hat packages on the remote machine."""
 
-from ansible.module_utils import rho_cmd
+import sys
 
+from ansible.module_utils import rho_cmd  # pylint: disable=no-name-in-module
+
+if sys.version_info > (3,):
+    long = int  # pylint: disable=invalid-name,redefined-builtin
+
+
+# pylint: disable=too-few-public-methods
 
 class RedhatPackagesRhoCmd(rho_cmd.RhoCmd):
     """This class wraps around the cli commands
