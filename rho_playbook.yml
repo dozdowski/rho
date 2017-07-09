@@ -8,6 +8,9 @@
   hosts: all
   roles:
     - collect
+    - collect_brms_raw
+    - collect_fuse_raw
+    - collect_jboss_raw
 
 
 - name: Write default facts first to a variable and then to csv locally
