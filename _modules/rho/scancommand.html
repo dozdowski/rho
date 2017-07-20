@@ -1,0 +1,480 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>rho.scancommand &#8212; rho 2.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for rho.scancommand</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2009-2016 Red Hat, Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># This software is licensed to you under the GNU General Public License,</span>
+<span class="c1"># version 2 (GPLv2). There is NO WARRANTY for this software, express or</span>
+<span class="c1"># implied, including the implied warranties of MERCHANTABILITY or FITNESS</span>
+<span class="c1"># FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2</span>
+<span class="c1"># along with this software; if not, see</span>
+<span class="c1"># http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.</span>
+
+<span class="c1"># pylint: disable=too-few-public-methods, too-many-lines</span>
+
+<span class="sd">&quot;&quot;&quot; Rho CLI Commands &quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">pexpect</span>
+<span class="kn">from</span> <span class="nn">rho</span> <span class="k">import</span> <span class="n">utilities</span>
+<span class="kn">from</span> <span class="nn">rho.clicommand</span> <span class="k">import</span> <span class="n">CliCommand</span>
+<span class="kn">from</span> <span class="nn">rho.vault</span> <span class="k">import</span> <span class="n">get_vault_and_password</span>
+<span class="kn">from</span> <span class="nn">rho.utilities</span> <span class="k">import</span> <span class="n">multi_arg</span><span class="p">,</span> <span class="n">_read_in_file</span><span class="p">,</span> <span class="n">str_to_ascii</span>
+<span class="kn">from</span> <span class="nn">rho.translation</span> <span class="k">import</span> <span class="n">get_translation</span>
+
+<span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
+
+
+<span class="c1"># Read ssh key from file</span>
+<span class="k">def</span> <span class="nf">_read_key_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">keyfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">filename</span><span class="p">)),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">sshkey</span> <span class="o">=</span> <span class="n">keyfile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">keyfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">sshkey</span>
+
+
+<span class="c1"># Creates the inventory for pinging all hosts and records</span>
+<span class="c1"># successful auths and the hosts they worked on</span>
+<span class="c1"># pylint: disable=too-many-statements, too-many-arguments</span>
+<span class="k">def</span> <span class="nf">_create_ping_inventory</span><span class="p">(</span><span class="n">vault</span><span class="p">,</span> <span class="n">vault_pass</span><span class="p">,</span> <span class="n">profile_ranges</span><span class="p">,</span> <span class="n">profile_port</span><span class="p">,</span>
+                           <span class="n">profile_auth_list</span><span class="p">,</span> <span class="n">forks</span><span class="p">):</span>
+    <span class="c1"># pylint: disable=too-many-locals</span>
+    <span class="n">success_auths</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">success_hosts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">success_port_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+    <span class="n">success_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">best_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">mapped_hosts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">hosts_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">profile_range</span> <span class="ow">in</span> <span class="n">profile_ranges</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=anomalous-backslash-in-string</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="s2">&quot;[0-9]*.[0-9]*.[0-9]*.\[[0-9]*:[0-9]*\]&quot;</span>
+        <span class="n">profile_range</span> <span class="o">=</span> <span class="n">profile_range</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">hostname</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">profile_range</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">profile_range</span><span class="p">):</span>
+            <span class="n">hosts_dict</span><span class="p">[</span><span class="n">profile_range</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ansible_host&#39;</span><span class="p">:</span> <span class="n">profile_range</span><span class="p">,</span>
+                                         <span class="s1">&#39;ansible_port&#39;</span><span class="p">:</span> <span class="n">profile_port</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hosts_dict</span><span class="p">[</span><span class="n">hostname</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">vars_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">cred_item</span> <span class="ow">in</span> <span class="n">profile_auth_list</span><span class="p">:</span>
+        <span class="n">cred_pass</span> <span class="o">=</span> <span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+        <span class="n">cred_sshkey</span> <span class="o">=</span> <span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssh_key_file&#39;</span><span class="p">)</span>
+        <span class="n">auth_item</span> <span class="o">=</span> <span class="p">[</span><span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span>
+                     <span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+                     <span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">),</span>
+                     <span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">),</span>
+                     <span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssh_key_file&#39;</span><span class="p">)]</span>
+
+        <span class="n">vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">cred_item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">cred_pass</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cred_pass</span><span class="p">:</span>
+            <span class="n">vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_ssh_pass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">cred_pass</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">cred_sshkey</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cred_sshkey</span><span class="p">:</span>
+                <span class="n">vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_ssh_private_key_file&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">cred_sshkey</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cred_pass</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">cred_sshkey</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cred_sshkey</span><span class="p">:</span>
+                <span class="n">vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_ssh_private_key_file&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">cred_sshkey</span><span class="p">)</span>
+
+        <span class="n">yml_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;all&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;hosts&#39;</span><span class="p">:</span> <span class="n">hosts_dict</span><span class="p">,</span> <span class="s1">&#39;vars&#39;</span><span class="p">:</span> <span class="n">vars_dict</span><span class="p">}}</span>
+        <span class="n">vault</span><span class="o">.</span><span class="n">dump_as_yaml_to_file</span><span class="p">(</span><span class="n">yml_dict</span><span class="p">,</span> <span class="s1">&#39;data/ping-inventory.yml&#39;</span><span class="p">)</span>
+
+        <span class="n">cmd_string</span> <span class="o">=</span> <span class="s1">&#39;ansible all -m&#39;</span> \
+                     <span class="s1">&#39; ping  -i data/ping-inventory.yml --ask-vault-pass -f &#39;</span> \
+                     <span class="o">+</span> <span class="n">forks</span>
+
+        <span class="n">my_env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">my_env</span><span class="p">[</span><span class="s2">&quot;ANSIBLE_HOST_KEY_CHECKING&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;False&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;data/ping_log&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ping_log</span><span class="p">:</span>
+            <span class="n">run_ansible_with_vault</span><span class="p">(</span><span class="n">cmd_string</span><span class="p">,</span> <span class="n">vault_pass</span><span class="p">,</span>
+                                   <span class="n">logfile</span><span class="o">=</span><span class="n">ping_log</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">my_env</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;data/ping_log&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ping_log</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">ping_log</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;pong&#39;</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="n">line</span><span class="p">]:</span>
+                <span class="n">tup_auth_item</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">auth_item</span><span class="p">)</span>
+                <span class="n">success_auths</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tup_auth_item</span><span class="p">)</span>
+                <span class="n">host_line</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">line</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\x1b</span><span class="s1">[0;32m&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">host_ip</span> <span class="o">=</span> <span class="n">host_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">success_hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host_ip</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">host_ip</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mapped_hosts</span><span class="p">:</span>
+                    <span class="n">best_map</span><span class="p">[</span><span class="n">tup_auth_item</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">host_ip</span><span class="p">)</span>
+                    <span class="n">mapped_hosts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">host_ip</span><span class="p">)</span>
+                <span class="n">success_map</span><span class="p">[</span><span class="n">host_ip</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tup_auth_item</span><span class="p">)</span>
+                <span class="n">success_port_map</span><span class="p">[</span><span class="n">host_ip</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile_port</span>
+
+    <span class="n">success_auths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">success_auths</span><span class="p">)</span>
+    <span class="n">success_hosts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">success_hosts</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">success_auths</span><span class="p">,</span> <span class="n">success_hosts</span><span class="p">,</span> <span class="n">best_map</span><span class="p">,</span> <span class="n">success_map</span><span class="p">,</span> \
+        <span class="n">success_port_map</span>
+
+
+<span class="c1"># Helper function to create a file to store the mapping</span>
+<span class="c1"># between hosts and ALL the auths that were ever succesful</span>
+<span class="c1"># with them arranged according to profile and date of scan.</span>
+<span class="k">def</span> <span class="nf">_create_hosts_auths_file</span><span class="p">(</span><span class="n">success_map</span><span class="p">,</span> <span class="n">profile</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;data/&#39;</span> <span class="o">+</span> <span class="n">profile</span> <span class="o">+</span> <span class="s1">&#39;_host_auth_mapping&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">host_auth_file</span><span class="p">:</span>
+        <span class="n">string_to_write</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%c</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">-&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---&#39;</span> \
+                                                <span class="s1">&#39;---</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">for</span> <span class="n">host</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">success_map</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">string_to_write</span> <span class="o">+=</span> <span class="n">host</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">----------------------</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">for</span> <span class="n">auth</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">string_to_write</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">auth</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;, ********, &#39;</span> <span class="o">+</span>\
+                    <span class="n">auth</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">string_to_write</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+        <span class="n">string_to_write</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">*******************************&#39;</span> \
+                           <span class="s1">&#39;*********************************&#39;</span> \
+                           <span class="s1">&#39;**************</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+        <span class="n">host_auth_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string_to_write</span><span class="p">)</span>
+
+
+<span class="c1"># Creates the filtered main inventory on which the custom</span>
+<span class="c1"># modules to collect facts are run. This inventory can be</span>
+<span class="c1"># used multiple times later after a profile has first been</span>
+<span class="c1"># processed and the valid mapping as been figured out by</span>
+<span class="c1"># pinging.</span>
+<span class="c1"># pylint: disable=too-many-locals</span>
+<span class="k">def</span> <span class="nf">_create_main_inventory</span><span class="p">(</span><span class="n">vault</span><span class="p">,</span> <span class="n">success_hosts</span><span class="p">,</span> <span class="n">success_port_map</span><span class="p">,</span> <span class="n">best_map</span><span class="p">,</span>
+                           <span class="n">profile</span><span class="p">):</span>
+    <span class="n">yml_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Create section of successfully connected hosts</span>
+    <span class="n">alpha_hosts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">success_hosts</span><span class="p">:</span>
+        <span class="n">ascii_host</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+        <span class="n">ascii_port</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">success_port_map</span><span class="p">[</span><span class="n">host</span><span class="p">]))</span>
+        <span class="n">alpha_host_vars_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ansible_host&#39;</span><span class="p">:</span> <span class="n">ascii_host</span><span class="p">,</span>
+                                <span class="s1">&#39;ansible_port&#39;</span><span class="p">:</span> <span class="n">ascii_port</span><span class="p">}</span>
+        <span class="n">alpha_hosts</span><span class="p">[</span><span class="n">ascii_host</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha_host_vars_dict</span>
+
+    <span class="n">yml_dict</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hosts&#39;</span><span class="p">:</span> <span class="n">alpha_hosts</span><span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">auth</span> <span class="ow">in</span> <span class="n">best_map</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">auth_user</span> <span class="o">=</span> <span class="n">auth</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">auth_pass</span> <span class="o">=</span> <span class="n">auth</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">auth_key</span> <span class="o">=</span> <span class="n">auth</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">best_map</span><span class="p">[</span><span class="n">auth</span><span class="p">]:</span>
+            <span class="n">ascii_host</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ascii_host</span> <span class="ow">in</span> <span class="n">alpha_hosts</span><span class="p">:</span>
+                <span class="n">host_vars_dict</span> <span class="o">=</span> <span class="n">alpha_hosts</span><span class="p">[</span><span class="n">ascii_host</span><span class="p">]</span>
+                <span class="n">host_vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">auth_user</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">auth_pass</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">auth_pass</span><span class="p">:</span>
+                    <span class="n">host_vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_ssh_pass&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                        <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">auth_pass</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">auth_key</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">auth_key</span><span class="p">:</span>
+                        <span class="n">host_vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_ssh_private_key_file&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">auth_key</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">auth_pass</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">auth_key</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">auth_key</span><span class="p">:</span>
+                        <span class="n">host_vars_dict</span><span class="p">[</span><span class="s1">&#39;ansible_ssh_private_key_file&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">str_to_ascii</span><span class="p">(</span><span class="n">auth_key</span><span class="p">)</span>
+
+    <span class="n">vault</span><span class="o">.</span><span class="n">dump_as_yaml_to_file</span><span class="p">(</span><span class="n">yml_dict</span><span class="p">,</span> <span class="s1">&#39;data/&#39;</span> <span class="o">+</span> <span class="n">profile</span> <span class="o">+</span> <span class="s1">&#39;_hosts.yml&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="run_ansible_with_vault"><a class="viewcode-back" href="../../rho.html#rho.scancommand.run_ansible_with_vault">[docs]</a><span class="k">def</span> <span class="nf">run_ansible_with_vault</span><span class="p">(</span><span class="n">cmd_string</span><span class="p">,</span> <span class="n">vault_pass</span><span class="p">,</span> <span class="n">ssh_key_passphrase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Runs ansible command allowing for password to be provided after</span>
+<span class="sd">    process triggered</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">child</span> <span class="o">=</span> <span class="n">pexpect</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">cmd_string</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s1">&#39;Vault password:&#39;</span><span class="p">)</span>
+        <span class="n">child</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">vault_pass</span><span class="p">)</span>
+        <span class="n">child</span><span class="o">.</span><span class="n">logfile</span> <span class="o">=</span> <span class="n">logfile</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">expect</span><span class="p">([</span><span class="n">pexpect</span><span class="o">.</span><span class="n">EOF</span><span class="p">,</span> <span class="s1">&#39;Enter passphrase for key .*:&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">logfile</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">ssh_key_passphrase</span><span class="p">)</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">logfile</span> <span class="o">=</span> <span class="n">logfile</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">pexpect</span><span class="o">.</span><span class="n">EOF</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">child</span><span class="o">.</span><span class="n">before</span>
+    <span class="k">except</span> <span class="n">pexpect</span><span class="o">.</span><span class="n">EOF</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pexpect unexpected EOF&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">pexpect</span><span class="o">.</span><span class="n">TIMEOUT</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;pexpect timed out&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScanCommand"><a class="viewcode-back" href="../../rho.html#rho.scancommand.ScanCommand">[docs]</a><span class="k">class</span> <span class="nc">ScanCommand</span><span class="p">(</span><span class="n">CliCommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The command that performs the scanning and collection of</span>
+<span class="sd">    facts by making the playbook, inventory and running ansible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">usage</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;usage: %prog scan [options] PROFILE&quot;</span><span class="p">)</span>
+        <span class="n">shortdesc</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;scan given host profile&quot;</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;scans the host profile&quot;</span><span class="p">)</span>
+
+        <span class="n">CliCommand</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;scan&quot;</span><span class="p">,</span> <span class="n">usage</span><span class="p">,</span> <span class="n">shortdesc</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--reset&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;reset&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;RESET&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Use if profiles/auths have been &quot;</span>
+                                      <span class="s2">&quot;changed&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--profile&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;profile&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;PROFILE&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;NAME of the profile - REQUIRED&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--reportfile&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;report_path&quot;</span><span class="p">,</span>
+                               <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;REPORTFILE&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Report file path - REQUIRED&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--facts&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;facts&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FACTS&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;callback&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">multi_arg</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="p">[],</span> <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;&#39;default&#39; or list &quot;</span> <span class="o">+</span>
+                                                  <span class="s2">&quot; - REQUIRED&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--ansible_forks&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;ansible_forks&quot;</span><span class="p">,</span>
+                               <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FORKS&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;number of ansible forks&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--vault&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;vaultfile&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;VAULT&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;file containing vault password for&quot;</span>
+                                      <span class="s2">&quot; scripting&quot;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_validate_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CliCommand</span><span class="o">.</span><span class="n">_validate_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">profile</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;No profile specified.&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">facts</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;No facts specified.&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">report_path</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;No report location specified.&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ansible_forks</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ansible_forks</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;ansible_forks can only be a positive integer.&quot;</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;ansible_forks can only be a positive integer.&quot;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_do_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># pylint: disable=too-many-locals</span>
+        <span class="c1"># pylint: disable=too-many-branches</span>
+        <span class="n">vault</span><span class="p">,</span> <span class="n">vault_pass</span> <span class="o">=</span> <span class="n">get_vault_and_password</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">vaultfile</span><span class="p">)</span>
+        <span class="n">profile_found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">profile_auth_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">profile_ranges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">profile_port</span> <span class="o">=</span> <span class="mi">22</span>
+        <span class="n">profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">profile</span>
+        <span class="n">facts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">facts</span>
+        <span class="n">forks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ansible_forks</span> \
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ansible_forks</span> <span class="k">else</span> <span class="s1">&#39;50&#39;</span>
+        <span class="n">report_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">report_path</span><span class="p">))</span>
+
+        <span class="c1"># Checks if profile exists and stores information</span>
+        <span class="c1"># about that profile for later use.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">utilities</span><span class="o">.</span><span class="n">PROFILES_PATH</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;No profiles exist yet.&#39;</span><span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">utilities</span><span class="o">.</span><span class="n">CREDENTIALS_PATH</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;No auth credentials exist yet.&#39;</span><span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">profiles_list</span> <span class="o">=</span> <span class="n">vault</span><span class="o">.</span><span class="n">load_as_json</span><span class="p">(</span><span class="n">utilities</span><span class="o">.</span><span class="n">PROFILES_PATH</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">curr_profile</span> <span class="ow">in</span> <span class="n">profiles_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">profile</span> <span class="o">==</span> <span class="n">curr_profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">):</span>
+                <span class="n">profile_found</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">profile_ranges</span> <span class="o">=</span> <span class="n">curr_profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hosts&#39;</span><span class="p">)</span>
+                <span class="n">profile_auths</span> <span class="o">=</span> <span class="n">curr_profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auth&#39;</span><span class="p">)</span>
+                <span class="n">profile_port</span> <span class="o">=</span> <span class="n">curr_profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssh_port&#39;</span><span class="p">)</span>
+                <span class="n">cred_list</span> <span class="o">=</span> <span class="n">vault</span><span class="o">.</span><span class="n">load_as_json</span><span class="p">(</span><span class="n">utilities</span><span class="o">.</span><span class="n">CREDENTIALS_PATH</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">auth</span> <span class="ow">in</span> <span class="n">profile_auths</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">cred</span> <span class="ow">in</span> <span class="n">cred_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">auth</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">cred</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
+                            <span class="n">profile_auth_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cred</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">profile_found</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Invalid profile. Create profile first&quot;</span><span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># reset is used when the profile has just been created</span>
+        <span class="c1"># or freshly updated.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reset</span><span class="p">:</span>
+            <span class="n">success_auths</span><span class="p">,</span> <span class="n">success_hosts</span><span class="p">,</span> <span class="n">best_map</span><span class="p">,</span> <span class="n">success_map</span><span class="p">,</span> \
+                <span class="n">success_port_map</span> <span class="o">=</span> <span class="n">_create_ping_inventory</span><span class="p">(</span><span class="n">vault</span><span class="p">,</span> <span class="n">vault_pass</span><span class="p">,</span>
+                                                          <span class="n">profile_ranges</span><span class="p">,</span>
+                                                          <span class="n">profile_port</span><span class="p">,</span>
+                                                          <span class="n">profile_auth_list</span><span class="p">,</span>
+                                                          <span class="n">forks</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">success_auths</span><span class="p">):</span>  <span class="c1"># pylint: disable=len-as-condition</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;All auths are invalid for this profile&#39;</span><span class="p">))</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">_create_hosts_auths_file</span><span class="p">(</span><span class="n">success_map</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span>
+
+            <span class="n">_create_main_inventory</span><span class="p">(</span><span class="n">vault</span><span class="p">,</span> <span class="n">success_hosts</span><span class="p">,</span> <span class="n">success_port_map</span><span class="p">,</span>
+                                   <span class="n">best_map</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s1">&#39;data/&#39;</span> <span class="o">+</span> <span class="n">profile</span> <span class="o">+</span> <span class="s1">&#39;_hosts&#39;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Profile &#39;&quot;</span> <span class="o">+</span> <span class="n">profile</span> <span class="o">+</span> <span class="s2">&quot;&#39; has not been processed. &quot;</span> <span class="o">+</span>
+                  <span class="s2">&quot;Please use --reset with profile first.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">facts</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="n">facts_to_collect</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">facts</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">facts_to_collect</span> <span class="o">=</span> <span class="n">_read_in_file</span><span class="p">(</span><span class="n">facts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">facts</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="n">facts_to_collect</span> <span class="o">=</span> <span class="n">facts</span>
+
+        <span class="n">ansible_vars</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;facts_to_collect&#39;</span><span class="p">:</span> <span class="n">facts_to_collect</span><span class="p">,</span>
+                        <span class="s1">&#39;report_path&#39;</span><span class="p">:</span> <span class="n">report_path</span><span class="p">}</span>
+
+        <span class="n">cmd_string</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ansible-playbook rho_playbook.yml &#39;</span>
+                      <span class="s1">&#39;-i data/</span><span class="si">{profile}</span><span class="s1">_hosts.yml -v -f </span><span class="si">{forks}</span><span class="s1"> &#39;</span>
+                      <span class="s1">&#39;--ask-vault-pass &#39;</span>
+                      <span class="s1">&#39;--extra-vars </span><span class="se">\&#39;</span><span class="si">{vars}</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                          <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span>
+                          <span class="n">forks</span><span class="o">=</span><span class="n">forks</span><span class="p">,</span>
+                          <span class="nb">vars</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">ansible_vars</span><span class="p">))</span>
+
+        <span class="c1"># process finally runs ansible on the</span>
+        <span class="c1"># playbook and inventories thus created.</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running:&#39;</span><span class="p">,</span> <span class="n">cmd_string</span><span class="p">)</span>
+        <span class="n">run_ansible_with_vault</span><span class="p">(</span><span class="n">cmd_string</span><span class="p">,</span> <span class="n">vault_pass</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;Scanning has completed. The mapping has been&quot;</span>
+                <span class="s2">&quot; stored in file &#39;&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">profile</span> <span class="o">+</span>
+                <span class="s2">&quot;_host_auth_map&#39;. The&quot;</span>
+                <span class="s2">&quot; facts have been stored in &#39;&quot;</span> <span class="o">+</span>
+                <span class="n">report_path</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">rho</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Red Hat.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

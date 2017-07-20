@@ -1,0 +1,499 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>rho package &#8212; rho 2.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rho-package">
+<h1>rho package<a class="headerlink" href="#rho-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-rho.authaddcommand">
+<span id="rho-authaddcommand-module"></span><h2>rho.authaddcommand module<a class="headerlink" href="#module-rho.authaddcommand" title="Permalink to this headline">¶</a></h2>
+<p>AuthAddCommand is used to add authentication credentials
+for system access</p>
+<dl class="class">
+<dt id="rho.authaddcommand.AuthAddCommand">
+<em class="property">class </em><code class="descclassname">rho.authaddcommand.</code><code class="descname">AuthAddCommand</code><a class="reference internal" href="_modules/rho/authaddcommand.html#AuthAddCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.authaddcommand.AuthAddCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for creating new auths
+which can be later associated with profiles
+to gather facts.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.authaddcommand.auth_exists">
+<code class="descclassname">rho.authaddcommand.</code><code class="descname">auth_exists</code><span class="sig-paren">(</span><em>cred_list</em>, <em>auth_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/authaddcommand.html#auth_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.authaddcommand.auth_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether authentication credential already exists
+:param cred_list: A list of credential dictionaries
+:param auth_name: Name of credential to check for existence
+:returns: True if auth_name exists, False otherwise</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.authclearcommand">
+<span id="rho-authclearcommand-module"></span><h2>rho.authclearcommand module<a class="headerlink" href="#module-rho.authclearcommand" title="Permalink to this headline">¶</a></h2>
+<p>AuthClearCommand is for removing a specific or all
+existing authentication credentials.</p>
+<dl class="class">
+<dt id="rho.authclearcommand.AuthClearCommand">
+<em class="property">class </em><code class="descclassname">rho.authclearcommand.</code><code class="descname">AuthClearCommand</code><a class="reference internal" href="_modules/rho/authclearcommand.html#AuthClearCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.authclearcommand.AuthClearCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for removing a specific
+or all existing auths.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.autheditcommand">
+<span id="rho-autheditcommand-module"></span><h2>rho.autheditcommand module<a class="headerlink" href="#module-rho.autheditcommand" title="Permalink to this headline">¶</a></h2>
+<p>AuthEditCommand is used to edit existing authentication credentials
+for system access</p>
+<dl class="class">
+<dt id="rho.autheditcommand.AuthEditCommand">
+<em class="property">class </em><code class="descclassname">rho.autheditcommand.</code><code class="descname">AuthEditCommand</code><a class="reference internal" href="_modules/rho/autheditcommand.html#AuthEditCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.autheditcommand.AuthEditCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is fpr editing the auths already
+existing. The user can edit the username, password
+and ssh key file path.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.autheditcommand.optional_arg">
+<code class="descclassname">rho.autheditcommand.</code><code class="descname">optional_arg</code><span class="sig-paren">(</span><em>arg_default</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/autheditcommand.html#optional_arg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.autheditcommand.optional_arg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call back function for arg-parse
+for when arguments are optional
+:param arg_default: The default for the argument
+:returns: Function for handling the argument</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.authlistcommand">
+<span id="rho-authlistcommand-module"></span><h2>rho.authlistcommand module<a class="headerlink" href="#module-rho.authlistcommand" title="Permalink to this headline">¶</a></h2>
+<p>AuthListCommand is used to list authentication credentials
+for system access</p>
+<dl class="class">
+<dt id="rho.authlistcommand.AuthListCommand">
+<em class="property">class </em><code class="descclassname">rho.authlistcommand.</code><code class="descname">AuthListCommand</code><a class="reference internal" href="_modules/rho/authlistcommand.html#AuthListCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.authlistcommand.AuthListCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for displaying all existing
+auths. Passwords are encrypted in the console.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.authshowcommand">
+<span id="rho-authshowcommand-module"></span><h2>rho.authshowcommand module<a class="headerlink" href="#module-rho.authshowcommand" title="Permalink to this headline">¶</a></h2>
+<p>AuthShowCommand is used to display existing authentication credentials</p>
+<dl class="class">
+<dt id="rho.authshowcommand.AuthShowCommand">
+<em class="property">class </em><code class="descclassname">rho.authshowcommand.</code><code class="descname">AuthShowCommand</code><a class="reference internal" href="_modules/rho/authshowcommand.html#AuthShowCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.authshowcommand.AuthShowCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for displaying an existing
+auth requested. Passwords are encrypted in
+the console.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.cli">
+<span id="rho-cli-module"></span><h2>rho.cli module<a class="headerlink" href="#module-rho.cli" title="Permalink to this headline">¶</a></h2>
+<p>Rho Command Line Interface</p>
+<dl class="class">
+<dt id="rho.cli.CLI">
+<em class="property">class </em><code class="descclassname">rho.cli.</code><code class="descname">CLI</code><a class="reference internal" href="_modules/rho/cli.html#CLI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.cli.CLI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class responsible for displaying ussage or matching inputs
+to the valid set of commands supported by rho.</p>
+<dl class="method">
+<dt id="rho.cli.CLI.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/cli.html#CLI.main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.cli.CLI.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method determine whether to display usage or pass input
+to find the best command match. If no match is found the
+usage is displayed</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.clicommand">
+<span id="rho-clicommand-module"></span><h2>rho.clicommand module<a class="headerlink" href="#module-rho.clicommand" title="Permalink to this headline">¶</a></h2>
+<p>Base CLI Command Class</p>
+<dl class="class">
+<dt id="rho.clicommand.CliCommand">
+<em class="property">class </em><code class="descclassname">rho.clicommand.</code><code class="descname">CliCommand</code><span class="sig-paren">(</span><em>name='cli'</em>, <em>usage=None</em>, <em>shortdesc=None</em>, <em>description=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/clicommand.html#CliCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.clicommand.CliCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Base class for all sub-commands.</p>
+<dl class="method">
+<dt id="rho.clicommand.CliCommand.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/clicommand.html#CliCommand.main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.clicommand.CliCommand.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>The method that does a basic check for command
+validity and set’s the process in motion.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.profileaddcommand">
+<span id="rho-profileaddcommand-module"></span><h2>rho.profileaddcommand module<a class="headerlink" href="#module-rho.profileaddcommand" title="Permalink to this headline">¶</a></h2>
+<p>ProfileAddCommand is used to create profiles that associate hosts
+and authentication credentials</p>
+<dl class="class">
+<dt id="rho.profileaddcommand.ProfileAddCommand">
+<em class="property">class </em><code class="descclassname">rho.profileaddcommand.</code><code class="descname">ProfileAddCommand</code><a class="reference internal" href="_modules/rho/profileaddcommand.html#ProfileAddCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.profileaddcommand.ProfileAddCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for creating new profiles
+based on hosts and the auths the user wants
+to associate.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.profileaddcommand.profile_exists">
+<code class="descclassname">rho.profileaddcommand.</code><code class="descname">profile_exists</code><span class="sig-paren">(</span><em>profile_list</em>, <em>profile_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/profileaddcommand.html#profile_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.profileaddcommand.profile_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether a network profile already exists
+:param profile_list: A list of profile dictionaries
+:param profile_name: Name of a network profile to check for existence
+:returns: True if profile_name exists, False otherwise</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.profileclearcommand">
+<span id="rho-profileclearcommand-module"></span><h2>rho.profileclearcommand module<a class="headerlink" href="#module-rho.profileclearcommand" title="Permalink to this headline">¶</a></h2>
+<p>ProfileClearCommand is used to clear profiles that already existing
+either individually or all profiles</p>
+<dl class="class">
+<dt id="rho.profileclearcommand.ProfileClearCommand">
+<em class="property">class </em><code class="descclassname">rho.profileclearcommand.</code><code class="descname">ProfileClearCommand</code><a class="reference internal" href="_modules/rho/profileclearcommand.html#ProfileClearCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.profileclearcommand.ProfileClearCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for removing profiles.
+A user can remove an existing profile by
+passing in the name or ask to delete all
+profiles.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.profileeditcommand">
+<span id="rho-profileeditcommand-module"></span><h2>rho.profileeditcommand module<a class="headerlink" href="#module-rho.profileeditcommand" title="Permalink to this headline">¶</a></h2>
+<p>ProfileEditCommand is used to edit existing profiles that associate hosts
+and authentication credentials</p>
+<dl class="class">
+<dt id="rho.profileeditcommand.ProfileEditCommand">
+<em class="property">class </em><code class="descclassname">rho.profileeditcommand.</code><code class="descname">ProfileEditCommand</code><a class="reference internal" href="_modules/rho/profileeditcommand.html#ProfileEditCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.profileeditcommand.ProfileEditCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for editing an existing profile.
+The name of the profile has to be supplied. The
+hosts, auths attached or both can be changed.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.profilelistcommand">
+<span id="rho-profilelistcommand-module"></span><h2>rho.profilelistcommand module<a class="headerlink" href="#module-rho.profilelistcommand" title="Permalink to this headline">¶</a></h2>
+<p>ProfileListCommand is used to list existing profiles that associate hosts
+and authentication credentials</p>
+<dl class="class">
+<dt id="rho.profilelistcommand.ProfileListCommand">
+<em class="property">class </em><code class="descclassname">rho.profilelistcommand.</code><code class="descname">ProfileListCommand</code><a class="reference internal" href="_modules/rho/profilelistcommand.html#ProfileListCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.profilelistcommand.ProfileListCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for displaying all existing profiles
+the user has added previously.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.profileshowcommand">
+<span id="rho-profileshowcommand-module"></span><h2>rho.profileshowcommand module<a class="headerlink" href="#module-rho.profileshowcommand" title="Permalink to this headline">¶</a></h2>
+<p>ProfileShowCommand is used to show a specific profiles that associate hosts
+and authentication credentials</p>
+<dl class="class">
+<dt id="rho.profileshowcommand.ProfileShowCommand">
+<em class="property">class </em><code class="descclassname">rho.profileshowcommand.</code><code class="descname">ProfileShowCommand</code><a class="reference internal" href="_modules/rho/profileshowcommand.html#ProfileShowCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.profileshowcommand.ProfileShowCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>This command is for displaying a particular profile
+the user has added previously if it has not been deleted
+already.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.scancommand">
+<span id="rho-scancommand-module"></span><h2>rho.scancommand module<a class="headerlink" href="#module-rho.scancommand" title="Permalink to this headline">¶</a></h2>
+<p>Rho CLI Commands</p>
+<dl class="class">
+<dt id="rho.scancommand.ScanCommand">
+<em class="property">class </em><code class="descclassname">rho.scancommand.</code><code class="descname">ScanCommand</code><a class="reference internal" href="_modules/rho/scancommand.html#ScanCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.scancommand.ScanCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rho.clicommand.CliCommand" title="rho.clicommand.CliCommand"><code class="xref py py-class docutils literal"><span class="pre">rho.clicommand.CliCommand</span></code></a></p>
+<p>The command that performs the scanning and collection of
+facts by making the playbook, inventory and running ansible.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.scancommand.run_ansible_with_vault">
+<code class="descclassname">rho.scancommand.</code><code class="descname">run_ansible_with_vault</code><span class="sig-paren">(</span><em>cmd_string</em>, <em>vault_pass</em>, <em>ssh_key_passphrase=None</em>, <em>env=None</em>, <em>logfile=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/scancommand.html#run_ansible_with_vault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.scancommand.run_ansible_with_vault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs ansible command allowing for password to be provided after
+process triggered</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.translation">
+<span id="rho-translation-module"></span><h2>rho.translation module<a class="headerlink" href="#module-rho.translation" title="Permalink to this headline">¶</a></h2>
+<p>Rho Translation initalization utility</p>
+<dl class="function">
+<dt id="rho.translation.get_translation">
+<code class="descclassname">rho.translation.</code><code class="descname">get_translation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/translation.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.translation.get_translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains the locale based translation setup for rho</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.utilities">
+<span id="rho-utilities-module"></span><h2>rho.utilities module<a class="headerlink" href="#module-rho.utilities" title="Permalink to this headline">¶</a></h2>
+<p>A set of reusable methods common to many of the commands</p>
+<dl class="function">
+<dt id="rho.utilities.ensure_config_dir_exists">
+<code class="descclassname">rho.utilities.</code><code class="descname">ensure_config_dir_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/utilities.html#ensure_config_dir_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.utilities.ensure_config_dir_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure the Rho configuration directory exists.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.utilities.multi_arg">
+<code class="descclassname">rho.utilities.</code><code class="descname">multi_arg</code><span class="sig-paren">(</span><em>option</em>, <em>opt_str</em>, <em>value</em>, <em>parser</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/utilities.html#multi_arg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.utilities.multi_arg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call back function for arg-parse
+for when arguments are multiple
+:param option: The option
+:param opt_str: The option string
+:param value: The value
+:param parser: The parser for handling the option</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.utilities.str_to_ascii">
+<code class="descclassname">rho.utilities.</code><code class="descname">str_to_ascii</code><span class="sig-paren">(</span><em>in_string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/utilities.html#str_to_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.utilities.str_to_ascii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coverts unicode string to ascii string
+:param in_string: input string to convert to ascii
+:returns: ASCII encoded string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.utilities.validate_port">
+<code class="descclassname">rho.utilities.</code><code class="descname">validate_port</code><span class="sig-paren">(</span><em>arg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/utilities.html#validate_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.utilities.validate_port" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that arg is a valid port.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arg</strong> – either a string or an integer.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The arg, as an integer.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">ValueError, if arg is not a valid port.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho.vault">
+<span id="rho-vault-module"></span><h2>rho.vault module<a class="headerlink" href="#module-rho.vault" title="Permalink to this headline">¶</a></h2>
+<p>Vault is used to read and write data securely using the Ansible vault</p>
+<dl class="class">
+<dt id="rho.vault.Vault">
+<em class="property">class </em><code class="descclassname">rho.vault.</code><code class="descname">Vault</code><span class="sig-paren">(</span><em>password</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>R/W an ansible-vault file</p>
+<dl class="method">
+<dt id="rho.vault.Vault.dump">
+<code class="descname">dump</code><span class="sig-paren">(</span><em>data</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt data and print stdout or write to stream
+:param data: The information to be encrypted
+:param stream: If not None the location to write the encrypted data to.
+:returns: If stream is None then the encrypted bytes otherwise None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.dump_as_json">
+<code class="descname">dump_as_json</code><span class="sig-paren">(</span><em>obj</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.dump_as_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.dump_as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert object to json and encrypt the data.
+:param obj: Python object to convert to json
+:param stream: If not None the location to write the encrypted data to.
+:returns: If stream is None then the encrypted bytes otherwise None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.dump_as_json_to_file">
+<code class="descname">dump_as_json_to_file</code><span class="sig-paren">(</span><em>obj</em>, <em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.dump_as_json_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.dump_as_json_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert object to json and encrypt the data.
+:param obj: Python object to convert to json
+:param file_path: The file to write data to via temp file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.dump_as_yaml">
+<code class="descname">dump_as_yaml</code><span class="sig-paren">(</span><em>obj</em>, <em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.dump_as_yaml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.dump_as_yaml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert object to yaml and encrypt the data.
+:param obj: Python object to convert to yaml
+:param stream: If not None the location to write the encrypted data to.
+:returns: If stream is None then the encrypted bytes otherwise None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.dump_as_yaml_to_file">
+<code class="descname">dump_as_yaml_to_file</code><span class="sig-paren">(</span><em>obj</em>, <em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.dump_as_yaml_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.dump_as_yaml_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert object to yaml and encrypt the data.
+:param obj: Python object to convert to yaml
+:param file_path: The file to write data to via temp file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read vault steam and return python object
+:param stream: The stream to read data from
+:returns: The decrypted data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.load_as_json">
+<code class="descname">load_as_json</code><span class="sig-paren">(</span><em>secure_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.load_as_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.load_as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read vault secured file and return json decoded object
+:param secure_file: The file to read data from as json
+:returns: The JSON data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rho.vault.Vault.load_secure_file">
+<code class="descname">load_secure_file</code><span class="sig-paren">(</span><em>secure_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#Vault.load_secure_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.Vault.load_secure_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read vault secured file and return python object
+:param secure_file: The file to read data from
+:returns: The decrpted data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.vault.get_vault">
+<code class="descclassname">rho.vault.</code><code class="descname">get_vault</code><span class="sig-paren">(</span><em>vaultfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#get_vault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.get_vault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method that will get the vault password via input file or from
+standard input and then initialize a vault for users
+:param vaultfile: The location of a file with the vault password
+:returns: An initialized vault</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.vault.get_vault_and_password">
+<code class="descclassname">rho.vault.</code><code class="descname">get_vault_and_password</code><span class="sig-paren">(</span><em>vaultfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#get_vault_and_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.get_vault_and_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method that will get the vault password via input file or from
+standard input and then initialize a vault for users
+:param vaultfile: The location of a file with the vault password
+:returns: An initialized vault and the password</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.vault.get_vault_password">
+<code class="descclassname">rho.vault.</code><code class="descname">get_vault_password</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#get_vault_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.get_vault_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requests the users password from the command line</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.vault.read_vault_password">
+<code class="descclassname">rho.vault.</code><code class="descname">read_vault_password</code><span class="sig-paren">(</span><em>vault_password_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#read_vault_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.read_vault_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads vault password from file for scripting
+:param vault_password_file: Path to vault password file
+:returns: vault password string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rho.vault.represent_none">
+<code class="descclassname">rho.vault.</code><code class="descname">represent_none</code><span class="sig-paren">(</span><em>self</em>, <em>_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rho/vault.html#represent_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rho.vault.represent_none" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render None with nothing in yaml string when dumped</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rho">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-rho" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">rho</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Red Hat.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/rho.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
